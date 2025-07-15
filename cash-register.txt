@@ -1,0 +1,60 @@
+** start of script.js **
+
+function checkCashRegister(price, cash, cid) {
+  const currencyUnits = [
+    ["ONE HUNDRED", 100],
+    ["TWENTY", 20],
+    ["TEN", 10],
+    ["FIVE", 5],
+    ["ONE", 1],
+    ["QUARTER", 0.25],
+    ["DIME", 0.1],
+    ["NICKEL", 0.05],
+    ["PENNY", 0.01],
+  ];
+
+  let changeDue = +(cash - price).toFixed(2);
+  let totalCID = cid.reduce((sum, [name, amount]) => sum + amount, 0);
+  totalCID = +totalCID.toFixed(2);
+
+  if (totalCID < changeDue) {
+    return { status: "INSUFFICIENT_FUNDS", change: [] };
+  }
+
+  if (totalCID === changeDue) {
+    return { status: "CLOSED", change: cid };
+  }
+
+  const changeArray = [];
+
+  for (let [name, unit] of currencyUnits) {
+    let amountInDrawer = cid.find(item => item[0] === name)[1];
+    let amountToReturn = 0;
+
+    while (changeDue >= unit && amountInDrawer > 0) {
+      changeDue = +(changeDue - unit).toFixed(2);
+      amountInDrawer = +(amountInDrawer - unit).toFixed(2);
+      amountToReturn = +(amountToReturn + unit).toFixed(2);
+    }
+
+    if (amountToReturn > 0) {
+      changeArray.push([name, amountToReturn]);
+    }
+  }
+
+  // If after giving change, changeDue is not zero, can't give exact change
+  if (changeDue > 0) {
+    return { status: "INSUFFICIENT_FUNDS", change: [] };
+  }
+
+  // Check if the change matches the total cash in drawer after giving change
+  const totalChangeGiven = changeArray.reduce((sum, [name, amount]) => sum + amount, 0);
+  if (totalChangeGiven === totalCID) {
+    return { status: "CLOSED", change: cid };
+  }
+
+  return { status: "OPEN", change: changeArray };
+}
+
+** end of script.js **
+
